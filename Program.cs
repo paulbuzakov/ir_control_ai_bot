@@ -21,6 +21,12 @@ builder.Configuration.AddInMemoryCollection(
         .ToDictionary(kv => kv.Key, kv => kv.Value)
 );
 
+Console.WriteLine("Configuration:");
+foreach (var kv in builder.Configuration.AsEnumerable())
+{
+    Console.WriteLine($"{kv.Key}: {kv.Value}");
+}
+
 builder
     .Services.AddOptions<TelegramOptions>()
     .Bind(builder.Configuration.GetSection(TelegramOptions.Section))
