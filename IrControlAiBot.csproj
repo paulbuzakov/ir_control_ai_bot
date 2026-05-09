@@ -24,5 +24,6 @@
 
   <ItemGroup>
     <Content Include="appsettings*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="deploy\ircontrolaibot.service" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
