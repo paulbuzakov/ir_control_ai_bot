@@ -53,6 +53,9 @@ jobs:
       - name: Package artifact
         run: tar -czf "$ARTIFACT" -C publish .
 
+      - name: Debug — show derived public key
+        run: ssh-keygen -y -f ~/.ssh/id_deploy
+
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
