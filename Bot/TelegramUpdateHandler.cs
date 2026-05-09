@@ -24,11 +24,17 @@ public sealed class TelegramUpdateHandler(
 
         var parsed = CommandParser.TryParse(text, identity.Username);
         if (parsed is not { } command)
+        {
+            await SendHelloAsync(botClient, message, cancellationToken);
             return;
+        }
 
         var handler = _handlers.FirstOrDefault(h => h.CanHandle(command.Name));
         if (handler is null)
+        {
+            await SendHelloAsync(botClient, message, cancellationToken);
             return;
+        }
 
         try
         {
@@ -43,6 +49,25 @@ public sealed class TelegramUpdateHandler(
                 command.Name
             );
         }
+    }
+
+    private async Task SendHelloAsync(
+        ITelegramBotClient botClient,
+        Message message,
+        CancellationToken cancellationToken
+    )
+    {
+        var lines = _handlers
+            .SelectMany(h => h.Commands)
+            .Select(c => $"/{c.Command} — {c.Description}");
+        var text = "Привет! Доступные команды:\n" + string.Join('\n', lines);
+
+        await botClient.SendMessage(
+            message.Chat.Id,
+            text,
+            replyParameters: message.MessageId,
+            cancellationToken: cancellationToken
+        );
     }
 
     public Task HandleErrorAsync(
