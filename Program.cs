@@ -41,6 +41,11 @@ builder.Services.AddSingleton<ITelegramBotClient>(sp =>
 {
     var options = sp.GetRequiredService<IOptions<TelegramOptions>>().Value;
     Console.WriteLine($"Initializing TelegramBotClient with token: {options.Token}");
+    Console.WriteLine(
+        $"Telegram Bot Token: {Environment.GetEnvironmentVariable(
+                "TELEGRAM_BOT_TOKEN"
+            )}"
+    );
 
     return new TelegramBotClient(options.Token);
 });
