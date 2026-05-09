@@ -8,18 +8,22 @@ using Telegram.Bot;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Configuration.AddInMemoryCollection(
-    new Dictionary<string, string?>
-    {
-        [$"{TelegramOptions.Section}:Token"] = Environment.GetEnvironmentVariable(
-            "TELEGRAM_BOT_TOKEN"
-        ),
-        [$"{OpenAiOptions.Section}:ApiKey"] = Environment.GetEnvironmentVariable("OPENAI_API_KEY"),
-        [$"{OpenAiOptions.Section}:Model"] = Environment.GetEnvironmentVariable("OPENAI_MODEL"),
-    }
-        .Where(kv => kv.Value is not null)
-        .ToDictionary(kv => kv.Key, kv => kv.Value)
-);
+builder
+    .Configuration.AddInMemoryCollection(
+        new Dictionary<string, string?>
+        {
+            [$"{TelegramOptions.Section}:Token"] = Environment.GetEnvironmentVariable(
+                "TELEGRAM_BOT_TOKEN"
+            ),
+            [$"{OpenAiOptions.Section}:ApiKey"] = Environment.GetEnvironmentVariable(
+                "OPENAI_API_KEY"
+            ),
+            [$"{OpenAiOptions.Section}:Model"] = Environment.GetEnvironmentVariable("OPENAI_MODEL"),
+        }
+            .Where(kv => kv.Value is not null)
+            .ToDictionary(kv => kv.Key, kv => kv.Value)
+    )
+    .AddEnvironmentVariables();
 
 builder
     .Services.AddOptions<TelegramOptions>()
@@ -56,21 +60,5 @@ builder.Services.AddSingleton<BotIdentity>();
 builder.Services.AddSingleton<ICommandHandler, MealCommandHandler>();
 builder.Services.AddSingleton<TelegramUpdateHandler>();
 builder.Services.AddHostedService<TelegramBotService>();
-
-Console.WriteLine(
-    $"TELEGRAM_BOT_TOKEN: {Environment.GetEnvironmentVariable(
-            "TELEGRAM_BOT_TOKEN"
-        )}"
-);
-Console.WriteLine(
-    $"OPENAI_API_KEY: {Environment.GetEnvironmentVariable(
-            "OPENAI_API_KEY"
-        )}"
-);
-Console.WriteLine(
-    $"OPENAI_MODEL: {Environment.GetEnvironmentVariable(
-            "OPENAI_MODEL"
-        )}"
-);
 
 await builder.Build().RunAsync();
