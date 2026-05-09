@@ -21,11 +21,21 @@ builder.Configuration.AddInMemoryCollection(
         .ToDictionary(kv => kv.Key, kv => kv.Value)
 );
 
-Console.WriteLine("Configuration:");
-foreach (var kv in builder.Configuration.AsEnumerable())
-{
-    Console.WriteLine($"{kv.Key}: {kv.Value}");
-}
+Console.WriteLine(
+    $"Configuration: {Environment.GetEnvironmentVariable(
+            "TELEGRAM_BOT_TOKEN"
+        )}"
+);
+Console.WriteLine(
+    $"Configuration: {Environment.GetEnvironmentVariable(
+            "OPENAI_API_KEY"
+        )}"
+);
+Console.WriteLine(
+    $"Configuration: {Environment.GetEnvironmentVariable(
+            "OPENAI_MODEL"
+        )}"
+);
 
 builder
     .Services.AddOptions<TelegramOptions>()
