@@ -6,6 +6,8 @@ public static class CommandParser
 {
     public static ParsedCommand? TryParse(string text, string botUsername)
     {
+        Console.WriteLine($"Parsing command: {botUsername} {text}");
+
         var trimmed = text.AsSpan().TrimStart();
         if (trimmed.IsEmpty || trimmed[0] != '/')
             return null;
@@ -19,7 +21,10 @@ public static class CommandParser
         {
             var target = head[(atIdx + 1)..];
             if (!target.Equals(botUsername, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Command is for a different bot: {target}");
                 return null;
+            }
             head = head[..atIdx];
         }
 
