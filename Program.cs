@@ -59,7 +59,8 @@ builder.Services.AddHostedService<TelegramBotService>();
 
 Console.WriteLine(
     $"TELEGRAM_BOT_TOKEN: {Environment.GetEnvironmentVariable(
-            "TELEGRAM_BOT_TOKEN"
+            "
+            "
         )}"
 );
 Console.WriteLine(
