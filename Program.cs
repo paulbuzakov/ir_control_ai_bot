@@ -40,6 +40,8 @@ builder
 builder.Services.AddSingleton<ITelegramBotClient>(sp =>
 {
     var options = sp.GetRequiredService<IOptions<TelegramOptions>>().Value;
+    Console.WriteLine($"Initializing TelegramBotClient with token: {options.Token}");
+
     return new TelegramBotClient(options.Token);
 });
 
@@ -52,6 +54,11 @@ builder.Services.AddHttpClient<IOpenAiChatClient, OpenAiChatClient>(
             "Bearer",
             options.ApiKey
         );
+        Console.WriteLine(
+            $"Configuring HttpClient for OpenAI with BaseAddress: {http.BaseAddress}"
+        );
+        Console.WriteLine($"Setting OpenAI API Key: {options.ApiKey}");
+
         http.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
     }
 );
