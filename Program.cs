@@ -21,22 +21,6 @@ builder.Configuration.AddInMemoryCollection(
         .ToDictionary(kv => kv.Key, kv => kv.Value)
 );
 
-Console.WriteLine(
-    $"Configuration: {Environment.GetEnvironmentVariable(
-            "TELEGRAM_BOT_TOKEN"
-        )}"
-);
-Console.WriteLine(
-    $"Configuration: {Environment.GetEnvironmentVariable(
-            "OPENAI_API_KEY"
-        )}"
-);
-Console.WriteLine(
-    $"Configuration: {Environment.GetEnvironmentVariable(
-            "OPENAI_MODEL"
-        )}"
-);
-
 builder
     .Services.AddOptions<TelegramOptions>()
     .Bind(builder.Configuration.GetSection(TelegramOptions.Section))
@@ -72,5 +56,21 @@ builder.Services.AddSingleton<BotIdentity>();
 builder.Services.AddSingleton<ICommandHandler, MealCommandHandler>();
 builder.Services.AddSingleton<TelegramUpdateHandler>();
 builder.Services.AddHostedService<TelegramBotService>();
+
+Console.WriteLine(
+    $"TELEGRAM_BOT_TOKEN: {Environment.GetEnvironmentVariable(
+            "TELEGRAM_BOT_TOKEN"
+        )}"
+);
+Console.WriteLine(
+    $"OPENAI_API_KEY: {Environment.GetEnvironmentVariable(
+            "OPENAI_API_KEY"
+        )}"
+);
+Console.WriteLine(
+    $"OPENAI_MODEL: {Environment.GetEnvironmentVariable(
+            "OPENAI_MODEL"
+        )}"
+);
 
 await builder.Build().RunAsync();
