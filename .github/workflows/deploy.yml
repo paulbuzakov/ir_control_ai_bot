@@ -85,12 +85,23 @@ jobs:
           : "${SERVICE:?}"
           : "${REMOTE_TMP:?}"
 
+          UNIT_SRC="$APP_DIR/deploy/ircontrolaibot.service"
+          UNIT_DST="/etc/systemd/system/$SERVICE.service"
+
           mkdir -p "$APP_DIR"
           sudo systemctl stop "$SERVICE" || true
           find "$APP_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
           tar -xzf "$REMOTE_TMP" -C "$APP_DIR"
           chmod +x "$APP_DIR/IrControlAiBot"
           rm -f "$REMOTE_TMP"
+
+          if [ ! -f "$UNIT_SRC" ]; then
+            echo "Service unit not found at $UNIT_SRC" >&2
+            exit 1
+          fi
+          sudo install -m 644 "$UNIT_SRC" "$UNIT_DST"
+          sudo systemctl daemon-reload
+          sudo systemctl enable "$SERVICE"
           sudo systemctl start "$SERVICE"
 
           sleep 2
