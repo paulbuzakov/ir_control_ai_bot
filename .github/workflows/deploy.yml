@@ -59,25 +59,25 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/ircontrolaibot_deploy
+          chmod 600 ~/.ssh/ircontrolaibot_deploy
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Debug — show derived public key
-        run: ssh-keygen -y -f ~/.ssh/id_deploy
+        run: ssh-keygen -y -f ~/.ssh/ircontrolaibot_deploy
 
       - name: Upload artifact
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
-        run: scp -i ~/.ssh/id_deploy "$ARTIFACT" "$SSH_USER@$SSH_HOST:$REMOTE_TMP"
+        run: scp -i ~/.ssh/ircontrolaibot_deploy "$ARTIFACT" "$SSH_USER@$SSH_HOST:$REMOTE_TMP"
 
       - name: Install and restart service
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
-          ssh -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" \
+          ssh -i ~/.ssh/ircontrolaibot_deploy "$SSH_USER@$SSH_HOST" \
             "APP_DIR='$APP_DIR' SERVICE='$SERVICE' REMOTE_TMP='$REMOTE_TMP' bash -s" <<'REMOTE'
           set -euo pipefail
 
