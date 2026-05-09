@@ -1,0 +1,32 @@
+[Unit]
+Description=IrControl AI Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ircontrolaibot
+Group=ircontrolaibot
+WorkingDirectory=/opt/ircontrolaibot
+EnvironmentFile=/etc/ircontrolaibot.env
+ExecStart=/opt/ircontrolaibot/IrControlAiBot
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ircontrolaibot
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

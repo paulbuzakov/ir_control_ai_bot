@@ -1,0 +1,99 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  RUNTIME: linux-x64
+  ARTIFACT: ircontrolaibot.tar.gz
+  REMOTE_TMP: /tmp/ircontrolaibot.tar.gz
+  APP_DIR: /opt/ircontrolaibot
+  SERVICE: ircontrolaibot
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'NuGet.config') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Publish self-contained
+        run: |
+          dotnet publish IrControlAiBot.csproj \
+            -c Release \
+            -r "$RUNTIME" \
+            --self-contained true \
+            /p:PublishSingleFile=true \
+            /p:DebugType=embedded \
+            /p:IncludeNativeLibrariesForSelfExtract=true \
+            -o publish
+
+      - name: Package artifact
+        run: tar -czf "$ARTIFACT" -C publish .
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload artifact
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: scp -i ~/.ssh/id_deploy "$ARTIFACT" "$SSH_USER@$SSH_HOST:$REMOTE_TMP"
+
+      - name: Install and restart service
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" \
+            "APP_DIR='$APP_DIR' SERVICE='$SERVICE' REMOTE_TMP='$REMOTE_TMP' bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          : "${APP_DIR:?}"
+          : "${SERVICE:?}"
+          : "${REMOTE_TMP:?}"
+
+          mkdir -p "$APP_DIR"
+          sudo systemctl stop "$SERVICE" || true
+          find "$APP_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          tar -xzf "$REMOTE_TMP" -C "$APP_DIR"
+          chmod +x "$APP_DIR/IrControlAiBot"
+          rm -f "$REMOTE_TMP"
+          sudo systemctl start "$SERVICE"
+
+          sleep 2
+          if ! sudo systemctl is-active --quiet "$SERVICE"; then
+            sudo journalctl -u "$SERVICE" -n 80 --no-pager
+            exit 1
+          fi
+          sudo systemctl --no-pager --lines 0 status "$SERVICE"
+          REMOTE
